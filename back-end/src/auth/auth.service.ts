@@ -2,10 +2,11 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
-import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
 import { PrismaService } from 'src/prisma.service';
 import * as bcrypt from 'bcryptjs';
+import { PublicUser } from './types/PublicUser';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -16,32 +17,33 @@ export class AuthService {
     private prisma: PrismaService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
+  async validateUser(
+    email: string,
+    plainPassword: string,
+  ): Promise<User | null> {
     const user = await this.usersService.findOne(email);
-    if (user && user.password === password) {
-      const { password, ...result } = user;
-      return result;
-    }
-    return null;
+    if (!user) return null;
+
+    const passwordMatch = await bcrypt.compare(plainPassword, user.password);
+    if (!passwordMatch) return null;
+
+    return user;
   }
 
-  async login(user: LoginDto) {
-    const tokens = await this.getTokens('0', user.email);
+  async login(dto: User) {
+    const { password, refresh_token, ...publicUser } = dto;
+    const tokens = await this.getTokens(publicUser);
+    await this.updateRefreshToken(dto.id, tokens.refresh_token);
     return tokens;
   }
 
   async signup(dto: SignupDto) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-
+    const existingUser = await this.usersService.findOne(dto.email);
     if (existingUser) {
       throw new ConflictException('Usuário já cadastrado');
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(dto.password, salt);
-
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
@@ -50,14 +52,14 @@ export class AuthService {
       },
     });
 
-    const tokens = await this.getTokens(user.id, user.email);
-    return tokens;
+    return this.login(user);
   }
 
-  async getTokens(userId: string, email: string) {
+  async getTokens(user: PublicUser) {
+    const { id, ...rest } = user;
     const jwtPayload = {
-      sub: userId,
-      email,
+      sub: id,
+      ...rest,
     };
 
     const [acess_token, refresh_token] = await Promise.all([
@@ -75,5 +77,16 @@ export class AuthService {
       acess_token,
       refresh_token,
     };
+  }
+
+  async updateRefreshToken(
+    userId: string,
+    refreshToken: string,
+  ): Promise<void> {
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { refresh_token: hashedRefreshToken },
+    });
   }
 }

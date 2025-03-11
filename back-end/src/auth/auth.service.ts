@@ -7,6 +7,7 @@ import { PrismaService } from 'src/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { PublicUser } from './types/PublicUser';
 import { User } from '@prisma/client';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -30,14 +31,23 @@ export class AuthService {
     return user;
   }
 
-  async login(dto: User) {
+  async login(dto: User, response: Response) {
     const { password, refresh_token, ...publicUser } = dto;
+
     const tokens = await this.getTokens(publicUser);
     await this.updateRefreshToken(dto.id, tokens.refresh_token);
-    return tokens;
+
+    response.cookie('refreshToken', tokens.refresh_token, {
+      httpOnly: true,
+      secure: this.config.get('NODE_ENV') === 'production',
+    });
+
+    return {
+      access_token: tokens.acess_token,
+    };
   }
 
-  async signup(dto: SignupDto) {
+  async signup(dto: SignupDto, response: Response) {
     const existingUser = await this.usersService.findOne(dto.email);
     if (existingUser) {
       throw new ConflictException('Usuário já cadastrado');
@@ -52,7 +62,7 @@ export class AuthService {
       },
     });
 
-    return this.login(user);
+    return this.login(user, response);
   }
 
   async getTokens(user: PublicUser) {

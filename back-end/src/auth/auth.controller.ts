@@ -5,7 +5,7 @@ import { SignupDto } from './dto/signup.dto';
 import { User } from './decorators/user.decorator';
 import { User as IUser } from '@prisma/client';
 import { Response } from 'express';
-
+import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -25,5 +25,14 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     return this.authService.signup(dto, response);
+  }
+
+  @UseGuards(JwtRefreshAuthGuard)
+  @Post('refresh')
+  async refreshToken(
+    @User() user: IUser,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.authService.login(user, response);
   }
 }

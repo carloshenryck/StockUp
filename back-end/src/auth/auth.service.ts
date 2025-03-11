@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
@@ -8,6 +12,7 @@ import * as bcrypt from 'bcryptjs';
 import { PublicUser } from './types/PublicUser';
 import { User } from '@prisma/client';
 import { Response } from 'express';
+import { TokenPayload } from './types/TokenPayload';
 
 @Injectable()
 export class AuthService {
@@ -40,6 +45,7 @@ export class AuthService {
     response.cookie('refreshToken', tokens.refresh_token, {
       httpOnly: true,
       secure: this.config.get('NODE_ENV') === 'production',
+      expires: this.tokenExpirationInMs(tokens.refresh_token),
     });
 
     return {
@@ -67,7 +73,7 @@ export class AuthService {
 
   async getTokens(user: PublicUser) {
     const { id, ...rest } = user;
-    const jwtPayload = {
+    const jwtPayload: TokenPayload = {
       sub: id,
       ...rest,
     };
@@ -98,5 +104,30 @@ export class AuthService {
       where: { id: userId },
       data: { refresh_token: hashedRefreshToken },
     });
+  }
+
+  async veryifyUserRefreshToken(email: string, refreshToken: string) {
+    const user = await this.usersService.findOne(email);
+    if (!user || !user.refresh_token)
+      throw new UnauthorizedException('Erro inesperado! Faça login novamente');
+
+    const authenticated = await bcrypt.compare(
+      refreshToken,
+      user.refresh_token,
+    );
+
+    if (!authenticated)
+      throw new UnauthorizedException('Erro inesperado! Faça login novamente');
+
+    return user;
+  }
+
+  tokenExpirationInMs(token: string) {
+    const decoded = this.jwtService.decode<TokenPayload>(token);
+    if (!decoded?.exp) {
+      throw new Error('Invalid token: missing expiration time');
+    }
+
+    return new Date(decoded.exp * 1000);
   }
 }

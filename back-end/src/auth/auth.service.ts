@@ -13,6 +13,7 @@ import { PublicUser } from './types/PublicUser';
 import { User } from '@prisma/client';
 import { Response } from 'express';
 import { TokenPayload } from './types/TokenPayload';
+import { CreateUser } from './types/CreateUser';
 
 @Injectable()
 export class AuthService {
@@ -60,12 +61,10 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        password: hashedPassword,
-        name: dto.name,
-      },
+    const user = await this.usersService.create({
+      email: dto.email,
+      password: hashedPassword,
+      name: dto.name,
     });
 
     return this.login(user, response);
@@ -120,6 +119,12 @@ export class AuthService {
       throw new UnauthorizedException('Erro inesperado! Faça login novamente');
 
     return user;
+  }
+
+  async validateGoogleUser(googleUser: CreateUser) {
+    const user = await this.usersService.findOne(googleUser.email);
+    if (user) return user;
+    return await this.usersService.create(googleUser);
   }
 
   tokenExpirationInMs(token: string) {

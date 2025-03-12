@@ -8,6 +8,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthController } from './auth.controller';
 import { PrismaService } from 'src/prisma.service';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 @Module({
   imports: [UsersModule, PassportModule, JwtModule],
@@ -16,6 +17,7 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
     LocalStrategy,
     JwtStrategy,
     JwtRefreshStrategy,
+    GoogleStrategy,
     PrismaService,
   ],
   controllers: [AuthController],

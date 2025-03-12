@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { CreateUser } from 'src/auth/types/CreateUser';
 import { PrismaService } from 'src/prisma.service';
 
 export type User = any;
@@ -12,5 +13,9 @@ export class UsersService {
       where: { email },
     });
     return user;
+  }
+
+  async create(user: CreateUser) {
+    return await this.prisma.user.create({ data: { ...user } });
   }
 }

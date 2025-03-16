@@ -24,7 +24,7 @@ export function LoginForm({
               <span className="sr-only">StockUp</span>
             </a>
             <h1 className="text-xl font-bold">Bem vindo ao StockUp</h1>
-            <div className="text-center text-sm">
+            <div className="text-center text-sm leading-none">
               Não tem uma conta ?{" "}
               <a href="#" className="underline underline-offset-4">
                 Cadastre-se

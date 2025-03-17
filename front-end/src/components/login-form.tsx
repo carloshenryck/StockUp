@@ -15,6 +15,10 @@ import {
   FormMessage,
 } from "./ui/form";
 import { useForm } from "react-hook-form";
+import { fetchWrapper } from "@/lib/fetchWrapper";
+import { toast } from "sonner";
+import { useState } from "react";
+import { redirect } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email({ message: "O email deve ser válido" }),
@@ -27,6 +31,8 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -35,8 +41,18 @@ export function LoginForm({
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    const response = await fetchWrapper("/auth/login", "POST", values);
+
+    if (response) {
+      toast.success("Login com sucesso");
+    }
+    setIsLoading(false);
+  }
+
+  function googleLogin() {
+    redirect("http://localhost:4000/auth/google/login");
   }
 
   return (
@@ -91,7 +107,11 @@ export function LoginForm({
                   )}
                 />
               </div>
-              <Button type="submit" className="w-full cursor-pointer">
+              <Button
+                disabled={isLoading}
+                type="submit"
+                className="w-full cursor-pointer"
+              >
                 Login
               </Button>
             </div>
@@ -105,6 +125,7 @@ export function LoginForm({
                 variant="outline"
                 type="button"
                 className="w-full cursor-pointer"
+                onClick={googleLogin}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                   <path

@@ -46,6 +46,7 @@ export default function LoginPage() {
       toast.success("Login com sucesso");
       redirect("/");
     }
+    setIsLoading(false);
   };
 
   const googleLogin = () => {

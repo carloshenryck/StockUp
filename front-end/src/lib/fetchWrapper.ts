@@ -21,10 +21,8 @@ export const fetchWrapper = async <T = unknown>(
     });
 
     const jsonResponse = (await response.json()) as {
-      statusCode: number;
       data?: T;
       message?: string;
-      error?: string;
     };
 
     if (!response.ok) {

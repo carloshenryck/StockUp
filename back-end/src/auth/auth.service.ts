@@ -38,21 +38,21 @@ export class AuthService {
   }
 
   async login(dto: User, response: Response) {
-    const { password, refresh_token, ...publicUser } = dto;
+    const { password, refreshToken, ...publicUser } = dto;
 
     const tokens = await this.getTokens(publicUser);
-    await this.updateRefreshToken(dto.id, tokens.refresh_token);
+    await this.updateRefreshToken(dto.id, tokens.refreshToken);
 
-    response.cookie('accessToken', tokens.acess_token, {
+    response.cookie('accessToken', tokens.acessToken, {
       httpOnly: true,
       secure: this.config.get('NODE_ENV') === 'production',
-      expires: this.tokenExpirationInMs(tokens.acess_token),
+      expires: this.tokenExpirationInMs(tokens.acessToken),
     });
 
-    response.cookie('refreshToken', tokens.refresh_token, {
+    response.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: this.config.get('NODE_ENV') === 'production',
-      expires: this.tokenExpirationInMs(tokens.refresh_token),
+      expires: this.tokenExpirationInMs(tokens.refreshToken),
     });
 
     return {};
@@ -81,7 +81,7 @@ export class AuthService {
       ...rest,
     };
 
-    const [acess_token, refresh_token] = await Promise.all([
+    const [acessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(jwtPayload, {
         secret: this.config.get('JWT_TOKEN_SECRET'),
         expiresIn: this.config.get('JWT_TOKEN_EXPIRATION'),
@@ -93,8 +93,8 @@ export class AuthService {
     ]);
 
     return {
-      acess_token,
-      refresh_token,
+      acessToken,
+      refreshToken,
     };
   }
 
@@ -105,19 +105,16 @@ export class AuthService {
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
     await this.prisma.user.update({
       where: { id: userId },
-      data: { refresh_token: hashedRefreshToken },
+      data: { refreshToken: hashedRefreshToken },
     });
   }
 
   async veryifyUserRefreshToken(email: string, refreshToken: string) {
     const user = await this.usersService.findOne(email);
-    if (!user || !user.refresh_token)
+    if (!user || !user.refreshToken)
       throw new UnauthorizedException('Erro inesperado! Faça login novamente');
 
-    const authenticated = await bcrypt.compare(
-      refreshToken,
-      user.refresh_token,
-    );
+    const authenticated = await bcrypt.compare(refreshToken, user.refreshToken);
 
     if (!authenticated)
       throw new UnauthorizedException('Erro inesperado! Faça login novamente');

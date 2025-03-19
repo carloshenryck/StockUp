@@ -47,7 +47,7 @@ export class AuthController {
     @User() user: IUser,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const token = await this.authService.login(user, response);
-    response.redirect(`http://localhost:3000?token=${token.access_token}`);
+    await this.authService.login(user, response);
+    response.redirect(`http://localhost:3000`);
   }
 }

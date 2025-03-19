@@ -43,15 +43,19 @@ export class AuthService {
     const tokens = await this.getTokens(publicUser);
     await this.updateRefreshToken(dto.id, tokens.refresh_token);
 
+    response.cookie('accessToken', tokens.acess_token, {
+      httpOnly: true,
+      secure: this.config.get('NODE_ENV') === 'production',
+      expires: this.tokenExpirationInMs(tokens.acess_token),
+    });
+
     response.cookie('refreshToken', tokens.refresh_token, {
       httpOnly: true,
       secure: this.config.get('NODE_ENV') === 'production',
       expires: this.tokenExpirationInMs(tokens.refresh_token),
     });
 
-    return {
-      access_token: tokens.acess_token,
-    };
+    return {};
   }
 
   async signup(dto: SignupDto, response: Response) {

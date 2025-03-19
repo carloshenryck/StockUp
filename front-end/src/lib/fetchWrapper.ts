@@ -14,6 +14,7 @@ export const fetchWrapper = async <T = unknown>(
     const response = await fetch(routeUrl, {
       method: requestType,
       body: JSON.stringify(body),
+      credentials: "include",
       headers: new Headers({
         "Content-Type": "application/json",
         Accept: "application/json",

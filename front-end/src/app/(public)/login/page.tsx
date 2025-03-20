@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { fetchWrapper } from "@/lib/fetchWrapper";
+import { fetchLocal } from "@/lib/fetchLocal";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Boxes } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -40,7 +40,7 @@ export default function LoginPage() {
 
   const localLogin = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    const response = await fetchWrapper("/auth/login", "POST", values);
+    const response = await fetchLocal("/auth/login", "POST", values);
 
     if (response) {
       toast.success("Login com sucesso");

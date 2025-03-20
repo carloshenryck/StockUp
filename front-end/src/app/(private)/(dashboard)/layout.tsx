@@ -7,7 +7,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
   const user = await fetchServer<User>("/profile");
 
   if (!user?.companyId) {
-    redirect("/join-company");
+    redirect("/start");
   }
 
   return (

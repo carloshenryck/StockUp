@@ -17,7 +17,6 @@ import { Boxes } from "lucide-react";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -43,9 +42,9 @@ export default function LoginPage() {
     const response = await fetchLocal("/auth/login", "POST", values);
 
     if (response) {
-      toast.success("Login com sucesso");
       redirect("/");
     }
+
     setIsLoading(false);
   };
 

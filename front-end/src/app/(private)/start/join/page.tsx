@@ -43,7 +43,7 @@ export default function JoinPage() {
             </p>
           </div>
 
-          <Button className="w-full h-12">Continuar</Button>
+          <Button className="w-full">Continuar</Button>
         </div>
       </div>
     </div>

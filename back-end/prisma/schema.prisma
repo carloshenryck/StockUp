@@ -28,5 +28,15 @@ model Company {
   id   String @id @default(uuid())
   name String
 
-  users User[]
+  users          User[]
+  invitationCode InvitationCode?
+}
+
+model InvitationCode {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  companyId String   @unique
+  expiresAt DateTime
+
+  company Company @relation(fields: [companyId], references: [id])
 }

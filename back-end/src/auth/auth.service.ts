@@ -9,7 +9,6 @@ import { UsersService } from 'src/users/users.service';
 import { SignupDto } from './dto/signup.dto';
 import { PrismaService } from 'src/prisma.service';
 import * as bcrypt from 'bcryptjs';
-import { PublicUser } from './types/PublicUser';
 import { User } from '@prisma/client';
 import { Response } from 'express';
 import { TokenPayload } from './types/TokenPayload';
@@ -28,7 +27,7 @@ export class AuthService {
     email: string,
     plainPassword: string,
   ): Promise<User | null> {
-    const user = await this.usersService.findOne(email);
+    const user = await this.usersService.findOneByEmail(email);
     if (!user) return null;
 
     const passwordMatch = await bcrypt.compare(plainPassword, user.password);
@@ -38,9 +37,9 @@ export class AuthService {
   }
 
   async login(dto: User, response: Response) {
-    const { password, refreshToken, ...publicUser } = dto;
+    const { id, name } = dto;
 
-    const tokens = await this.getTokens(publicUser);
+    const tokens = await this.getTokens({ sub: id, name });
     await this.updateRefreshToken(dto.id, tokens.refreshToken);
 
     response.cookie('accessToken', tokens.acessToken, {
@@ -59,7 +58,7 @@ export class AuthService {
   }
 
   async signup(dto: SignupDto, response: Response) {
-    const existingUser = await this.usersService.findOne(dto.email);
+    const existingUser = await this.usersService.findOneByEmail(dto.email);
     if (existingUser) {
       throw new ConflictException('Usuário já cadastrado');
     }
@@ -74,19 +73,13 @@ export class AuthService {
     return this.login(user, response);
   }
 
-  async getTokens(user: PublicUser) {
-    const { id, ...rest } = user;
-    const jwtPayload: TokenPayload = {
-      sub: id,
-      ...rest,
-    };
-
+  async getTokens(payload: TokenPayload) {
     const [acessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(jwtPayload, {
+      this.jwtService.signAsync(payload, {
         secret: this.config.get('JWT_TOKEN_SECRET'),
         expiresIn: this.config.get('JWT_TOKEN_EXPIRATION'),
       }),
-      this.jwtService.signAsync(jwtPayload, {
+      this.jwtService.signAsync(payload, {
         secret: this.config.get('JWT_REFRESH_TOKEN_SECRET'),
         expiresIn: this.config.get('JWT_REFRESH_TOKEN_EXPIRATION'),
       }),
@@ -109,8 +102,8 @@ export class AuthService {
     });
   }
 
-  async veryifyUserRefreshToken(email: string, refreshToken: string) {
-    const user = await this.usersService.findOne(email);
+  async veryifyUserRefreshToken(id: string, refreshToken: string) {
+    const user = await this.usersService.findOneById(id);
     if (!user || !user.refreshToken)
       throw new UnauthorizedException('Erro inesperado! Faça login novamente');
 
@@ -123,7 +116,7 @@ export class AuthService {
   }
 
   async validateGoogleUser(googleUser: CreateUser) {
-    const user = await this.usersService.findOne(googleUser.email);
+    const user = await this.usersService.findOneByEmail(googleUser.email);
     if (user) return user;
     return await this.usersService.create(googleUser);
   }

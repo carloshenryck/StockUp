@@ -32,7 +32,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
     const cookies = request.cookies as { [key: string]: string };
 
     return this.authService.veryifyUserRefreshToken(
-      payload.email,
+      payload.sub,
       cookies.refreshToken,
     );
   }

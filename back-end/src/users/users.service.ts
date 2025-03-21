@@ -8,7 +8,22 @@ export type User = any;
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async findOne(email: string) {
+  async getProfile(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      omit: { password: true, refreshToken: true },
+    });
+    return user;
+  }
+
+  async findOneById(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+    return user;
+  }
+
+  async findOneByEmail(email: string) {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });

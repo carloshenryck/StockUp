@@ -1,6 +1,6 @@
-import { PublicUser } from './PublicUser';
+import { User } from '@prisma/client';
 
-export type TokenPayload = Omit<PublicUser, 'id'> & {
+export type TokenPayload = Pick<User, 'name'> & {
   sub: string;
   exp?: number;
   iat?: number;

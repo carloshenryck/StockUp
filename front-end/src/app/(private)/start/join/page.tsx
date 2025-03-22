@@ -34,7 +34,7 @@ export default function JoinPage() {
               <Input
                 type="text"
                 placeholder="Digite o código de convite..."
-                className="pl-10 h-12 bg-muted/40 border-0 shadow-none focus-visible:ring-1 text-sm"
+                className="pl-10 h-12 bg-muted/70 border-0 shadow-none focus-visible:ring-1 text-sm"
               />
             </div>
 

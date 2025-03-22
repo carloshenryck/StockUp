@@ -25,7 +25,7 @@ export default function StartPage() {
             <Link href="/start/join">
               <Button
                 variant="outline"
-                className="w-full h-auto flex items-center gap-3 p-4 justify-start hover:bg-muted"
+                className="w-full h-auto flex items-center gap-3 p-4 justify-start bg-input/20 hover:bg-input/50"
               >
                 <Building className="h-5 w-5" />
                 <div className="text-left">
@@ -39,7 +39,7 @@ export default function StartPage() {
 
             <Button
               variant="outline"
-              className="w-full h-auto flex items-center gap-3 p-4 justify-start hover:bg-muted"
+              className="w-full h-auto flex items-center gap-3 p-4 justify-start bg-input/20 hover:bg-input/50"
             >
               <Plus className="h-5 w-5" />
               <div className="text-left">

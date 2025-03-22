@@ -41,11 +41,11 @@ export default function LoginPage() {
     setIsLoading(true);
     const response = await fetchLocal("/auth/login", "POST", values);
 
-    if (response) {
-      redirect("/");
+    if (!response) {
+      setIsLoading(false);
     }
 
-    setIsLoading(false);
+    redirect("/");
   };
 
   const googleLogin = () => {

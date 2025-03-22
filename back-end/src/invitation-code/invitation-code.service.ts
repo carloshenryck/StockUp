@@ -61,29 +61,10 @@ export class InvitationCodeService {
     return { code: newInvitationCode.code };
   }
 
-  async joinCompany(userId: string, code: string) {
-    const user = await this.usersService.findOneById(userId);
-    if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
-    }
-
-    if (user.companyId) {
-      throw new ForbiddenException('Usuário já pertence a uma organização');
-    }
-
+  async findOneByCode(code: string) {
     const invitationCode = await this.prisma.invitationCode.findUnique({
-      where: { code },
+      where: { code: code },
     });
-
-    if (!this.isInvitationCodeValid(invitationCode)) {
-      throw new ForbiddenException('Código de convite inválido');
-    }
-
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { companyId: invitationCode?.companyId },
-    });
-
-    return {};
+    return invitationCode;
   }
 }

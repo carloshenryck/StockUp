@@ -41,11 +41,7 @@ export default function CreateCompanyPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
 
-    const response = await fetchLocal(
-      "/invitation-code/join-company",
-      "POST",
-      values
-    );
+    const response = await fetchLocal("/company/create", "POST", values);
 
     if (!response) {
       setIsLoading(false);
@@ -89,7 +85,7 @@ export default function CreateCompanyPage() {
                             <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
                               placeholder="Nome da empresa"
-                              maxLength={6}
+                              maxLength={50}
                               className="pl-10 h-12 bg-muted/70 border-0 shadow-none focus-visible:ring-1 text-sm"
                               {...field}
                             />

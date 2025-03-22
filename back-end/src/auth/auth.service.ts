@@ -20,7 +20,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private config: ConfigService,
-    private prisma: PrismaService,
+    private prismaService: PrismaService,
   ) {}
 
   async validateUser(
@@ -96,7 +96,7 @@ export class AuthService {
     refreshToken: string,
   ): Promise<void> {
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-    await this.prisma.user.update({
+    await this.prismaService.user.update({
       where: { id: userId },
       data: { refreshToken: hashedRefreshToken },
     });

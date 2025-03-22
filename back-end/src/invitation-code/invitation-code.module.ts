@@ -8,5 +8,6 @@ import { UsersModule } from 'src/users/users.module';
   imports: [UsersModule],
   controllers: [InvitationCodeController],
   providers: [InvitationCodeService, PrismaService],
+  exports: [InvitationCodeService],
 })
 export class InvitationCodeModule {}

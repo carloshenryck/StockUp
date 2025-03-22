@@ -37,11 +37,7 @@ export default function JoinCompanyPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
 
-    const response = await fetchLocal(
-      "/invitation-code/join-company",
-      "POST",
-      values
-    );
+    const response = await fetchLocal("/company/join", "POST", values);
 
     if (!response) {
       setIsLoading(false);

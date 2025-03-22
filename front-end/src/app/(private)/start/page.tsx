@@ -37,18 +37,20 @@ export default function StartPage() {
               </Button>
             </Link>
 
-            <Button
-              variant="outline"
-              className="w-full h-auto flex items-center gap-3 p-4 justify-start bg-input/20 hover:bg-input/50"
-            >
-              <Plus className="h-5 w-5" />
-              <div className="text-left">
-                <div>Criar uma Empresa</div>
-                <span className="text-xs text-muted-foreground">
-                  Inicie um novo espaço de trabalho
-                </span>
-              </div>
-            </Button>
+            <Link href="/start/create">
+              <Button
+                variant="outline"
+                className="w-full h-auto flex items-center gap-3 p-4 justify-start bg-input/20 hover:bg-input/50"
+              >
+                <Plus className="h-5 w-5" />
+                <div className="text-left">
+                  <div>Criar uma Empresa</div>
+                  <span className="text-xs text-muted-foreground">
+                    Inicie um novo espaço de trabalho
+                  </span>
+                </div>
+              </Button>
+            </Link>
           </div>
 
           <div className="text-xs text-center text-muted-foreground">

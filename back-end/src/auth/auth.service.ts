@@ -102,7 +102,7 @@ export class AuthService {
     });
   }
 
-  async veryifyUserRefreshToken(id: string, refreshToken: string) {
+  async verifyUserRefreshToken(id: string, refreshToken: string) {
     const user = await this.usersService.findOneById(id);
     if (!user || !user.refreshToken)
       throw new UnauthorizedException('Erro inesperado! Faça login novamente');

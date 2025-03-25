@@ -44,7 +44,6 @@ export default function LoginPage() {
     if (!response) {
       setIsLoading(false);
     }
-
     redirect("/");
   };
 

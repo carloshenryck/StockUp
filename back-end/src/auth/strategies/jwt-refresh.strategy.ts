@@ -5,6 +5,7 @@ import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AuthService } from '../auth.service';
 import { TokenPayload } from '../types/TokenPayload';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
@@ -14,6 +15,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
   constructor(
     configService: ConfigService,
     private authService: AuthService,
+    private usersService: UsersService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -28,12 +30,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
     });
   }
 
-  async validate(request: Request, payload: TokenPayload) {
-    const cookies = request.cookies as { [key: string]: string };
-
-    return this.authService.verifyUserRefreshToken(
-      payload.sub,
-      cookies.refreshToken,
-    );
+  async validate(payload: TokenPayload) {
+    return this.usersService.findOneById(payload.sub);
   }
 }

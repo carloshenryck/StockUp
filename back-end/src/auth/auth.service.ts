@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
@@ -100,19 +96,6 @@ export class AuthService {
       where: { id: userId },
       data: { refreshToken: hashedRefreshToken },
     });
-  }
-
-  async verifyUserRefreshToken(id: string, refreshToken: string) {
-    const user = await this.usersService.findOneById(id);
-    if (!user || !user.refreshToken)
-      throw new UnauthorizedException('Erro inesperado! Faça login novamente');
-
-    const authenticated = await bcrypt.compare(refreshToken, user.refreshToken);
-
-    if (!authenticated)
-      throw new UnauthorizedException('Erro inesperado! Faça login novamente');
-
-    return user;
   }
 
   async validateGoogleUser(googleUser: CreateUser) {

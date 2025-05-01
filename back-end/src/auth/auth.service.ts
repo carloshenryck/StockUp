@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { SignupDto } from './dto/signup.dto';
-import { PrismaService } from 'src/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
 import { Response } from 'express';
@@ -16,7 +15,6 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private config: ConfigService,
-    private prismaService: PrismaService,
   ) {}
 
   async validateUser(

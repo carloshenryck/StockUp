@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { AuthService } from '../auth.service';
 import { TokenPayload } from '../types/TokenPayload';
 import { UsersService } from 'src/users/users.service';
 
@@ -14,7 +13,6 @@ export class JwtRefreshStrategy extends PassportStrategy(
 ) {
   constructor(
     configService: ConfigService,
-    private authService: AuthService,
     private usersService: UsersService,
   ) {
     super({
@@ -24,13 +22,12 @@ export class JwtRefreshStrategy extends PassportStrategy(
           return cookies?.refreshToken;
         },
       ]),
-      secretOrKey: configService.get('JWT_REFRESH_TOKEN_SECRET') as string,
       ignoreExpiration: false,
-      passReqToCallback: true,
+      secretOrKey: configService.get('JWT_REFRESH_TOKEN_SECRET') as string,
     });
   }
 
-  async validate(payload: TokenPayload) {
+  validate(payload: TokenPayload) {
     return this.usersService.findOneById(payload.sub);
   }
 }

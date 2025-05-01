@@ -36,7 +36,6 @@ export class AuthService {
     const { id, name } = dto;
 
     const tokens = await this.getTokens({ sub: id, name });
-    await this.updateRefreshToken(dto.id, tokens.refreshToken);
 
     response.cookie('accessToken', tokens.acessToken, {
       httpOnly: true,
@@ -85,17 +84,6 @@ export class AuthService {
       acessToken,
       refreshToken,
     };
-  }
-
-  async updateRefreshToken(
-    userId: string,
-    refreshToken: string,
-  ): Promise<void> {
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-    await this.prismaService.user.update({
-      where: { id: userId },
-      data: { refreshToken: hashedRefreshToken },
-    });
   }
 
   async validateGoogleUser(googleUser: CreateUser) {

@@ -13,15 +13,27 @@ datasource db {
 }
 
 model User {
-  id           String  @id @default(uuid())
-  name         String
-  email        String  @unique
-  password     String
-  role         Role    @default(USER)
-  refreshToken String?
-  companyId    String?
+  id        String  @id @default(uuid())
+  name      String
+  email     String  @unique
+  password  String
+  role      Role    @default(USER)
+  companyId String?
 
-  company Company? @relation(fields: [companyId], references: [id])
+  company Company?       @relation(fields: [companyId], references: [id])
+  tokens  RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id     String @id @default(uuid())
+  token  String @unique
+  userId String
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("refresh_tokens")
 }
 
 model Company {
@@ -30,6 +42,8 @@ model Company {
 
   users          User[]
   invitationCode InvitationCode?
+
+  @@map("companies")
 }
 
 model InvitationCode {
@@ -39,4 +53,6 @@ model InvitationCode {
   expiresAt DateTime
 
   company Company @relation(fields: [companyId], references: [id])
+
+  @@map("invitation_codes")
 }

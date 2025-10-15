@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { CreateUser } from 'src/auth/types/CreateUser';
 import { PrismaService } from 'src/prisma.service';
 
-export type User = any;
-
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
@@ -11,7 +9,7 @@ export class UsersService {
   async getProfile(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      omit: { password: true, refreshToken: true },
+      omit: { password: true },
     });
     return user;
   }

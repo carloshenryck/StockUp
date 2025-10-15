@@ -1,13 +1,19 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/users/users.service';
-import { SignupDto } from './dto/signup.dto';
-import * as bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
-import { Response } from 'express';
-import { TokenPayload } from './types/TokenPayload';
+import * as bcrypt from 'bcryptjs';
+import { Request, Response } from 'express';
+import { PrismaService } from 'src/prisma.service';
+import { UsersService } from 'src/users/users.service';
+import { v4 as uuidv4 } from 'uuid';
+import { SignupDto } from './dto/signup.dto';
 import { CreateUser } from './types/CreateUser';
+import { TokenPayload } from './types/TokenPayload';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +21,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private config: ConfigService,
+    private prisma: PrismaService,
   ) {}
 
   async validateUser(
@@ -30,15 +37,15 @@ export class AuthService {
     return user;
   }
 
-  async login(dto: User, response: Response) {
-    const { id, name } = dto;
+  async login(userId: string, response: Response) {
+    const uuid = uuidv4();
+    const tokens = await this.getTokens(uuid, { sub: userId });
+    await this.saveRefreshToken(uuid, userId, tokens.refreshToken);
 
-    const tokens = await this.getTokens({ sub: id, name });
-
-    response.cookie('accessToken', tokens.acessToken, {
+    response.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: this.config.get('NODE_ENV') === 'production',
-      expires: this.tokenExpirationInMs(tokens.acessToken),
+      expires: this.tokenExpirationInMs(tokens.accessToken),
     });
 
     response.cookie('refreshToken', tokens.refreshToken, {
@@ -47,7 +54,9 @@ export class AuthService {
       expires: this.tokenExpirationInMs(tokens.refreshToken),
     });
 
-    return {};
+    return {
+      message: 'Login realizado com sucesso',
+    };
   }
 
   async signup(dto: SignupDto, response: Response) {
@@ -63,25 +72,59 @@ export class AuthService {
       name: dto.name,
     });
 
-    return this.login(user, response);
+    return this.login(user.id, response);
   }
 
-  async getTokens(payload: TokenPayload) {
-    const [acessToken, refreshToken] = await Promise.all([
+  async getTokens(uuid: string, payload: TokenPayload) {
+    const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: this.config.get('JWT_TOKEN_SECRET'),
         expiresIn: this.config.get('JWT_TOKEN_EXPIRATION'),
       }),
-      this.jwtService.signAsync(payload, {
-        secret: this.config.get('JWT_REFRESH_TOKEN_SECRET'),
-        expiresIn: this.config.get('JWT_REFRESH_TOKEN_EXPIRATION'),
-      }),
+      this.jwtService.signAsync(
+        { ...payload, uuid },
+        {
+          secret: this.config.get('JWT_REFRESH_TOKEN_SECRET'),
+          expiresIn: this.config.get('JWT_REFRESH_TOKEN_EXPIRATION'),
+        },
+      ),
     ]);
 
     return {
-      acessToken,
+      accessToken,
       refreshToken,
     };
+  }
+
+  async saveRefreshToken(uuid: string, userId: string, refreshToken: string) {
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    await this.prisma.refreshToken.create({
+      data: {
+        id: uuid,
+        userId,
+        token: hashedRefreshToken,
+      },
+    });
+  }
+
+  async refreshTokens(userId: string, response: Response, request: Request) {
+    const refreshTokenFromCookies = request.cookies['refreshToken'] as string;
+    const payload = this.jwtService.decode<TokenPayload>(
+      refreshTokenFromCookies,
+    );
+
+    const refreshTokenFromUser = await this.prisma.refreshToken.findUnique({
+      where: { id: payload.uuid },
+    });
+    if (!refreshTokenFromUser) {
+      throw new UnauthorizedException('Token inválido');
+    }
+
+    await this.prisma.refreshToken.delete({
+      where: { id: payload.uuid },
+    });
+
+    return this.login(userId, response);
   }
 
   async validateGoogleUser(googleUser: CreateUser) {

@@ -4,17 +4,13 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { TokenPayload } from '../types/TokenPayload';
-import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
   Strategy,
   'jwt-refresh',
 ) {
-  constructor(
-    configService: ConfigService,
-    private usersService: UsersService,
-  ) {
+  constructor(configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => {
@@ -28,6 +24,6 @@ export class JwtRefreshStrategy extends PassportStrategy(
   }
 
   validate(payload: TokenPayload) {
-    return this.usersService.findOneById(payload.sub);
+    return payload.sub;
   }
 }

@@ -1,12 +1,20 @@
-import { Controller, Post, UseGuards, Body, Res, Get } from '@nestjs/common';
-import { LocalAuthGuard } from './guards/local-auth.guard';
-import { AuthService } from './auth.service';
-import { SignupDto } from './dto/signup.dto';
-import { User } from './decorators/user.decorator';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { User as IUser } from '@prisma/client';
-import { Response } from 'express';
-import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
+import { Request, Response } from 'express';
+import { AuthService } from './auth.service';
+import { User } from './decorators/user.decorator';
+import { SignupDto } from './dto/signup.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -17,7 +25,7 @@ export class AuthController {
     @User() user: IUser,
     @Res({ passthrough: true }) response: Response,
   ) {
-    return this.authService.login(user, response);
+    return this.authService.login(user.id, response);
   }
 
   @Post('signup')
@@ -30,11 +38,12 @@ export class AuthController {
 
   @UseGuards(JwtRefreshAuthGuard)
   @Post('refresh')
-  async refreshToken(
-    @User() user: IUser,
+  refreshTokens(
+    @User() userId: string,
     @Res({ passthrough: true }) response: Response,
+    @Req() request: Request,
   ) {
-    return this.authService.login(user, response);
+    return this.authService.refreshTokens(userId, response, request);
   }
 
   @UseGuards(GoogleAuthGuard)
@@ -47,7 +56,7 @@ export class AuthController {
     @User() user: IUser,
     @Res({ passthrough: true }) response: Response,
   ) {
-    await this.authService.login(user, response);
+    await this.authService.login(user.id, response);
     response.redirect(`http://localhost:3000`);
   }
 }

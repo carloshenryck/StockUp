@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
+import { InvitationCodeModule } from 'src/invitation-code/invitation-code.module';
+import { PrismaService } from 'src/prisma.service';
+import { UsersModule } from 'src/users/users.module';
 import { CompanyController } from './company.controller';
 import { CompanyService } from './company.service';
-import { UsersModule } from 'src/users/users.module';
-import { PrismaService } from 'src/prisma.service';
-import { InvitationCodeModule } from 'src/invitation-code/invitation-code.module';
 
 @Module({
   imports: [UsersModule, InvitationCodeModule],

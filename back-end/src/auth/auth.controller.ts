@@ -1,19 +1,10 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
 import { User as IUser } from '@prisma/client';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { User } from './decorators/user.decorator';
 import { SignupDto } from './dto/signup.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
-import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 @Controller('auth')
 export class AuthController {
@@ -34,16 +25,6 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     return this.authService.signup(dto, response);
-  }
-
-  @UseGuards(JwtRefreshAuthGuard)
-  @Post('refresh')
-  refreshTokens(
-    @User() userId: string,
-    @Res({ passthrough: true }) response: Response,
-    @Req() request: Request,
-  ) {
-    return this.authService.refreshTokens(userId, response, request);
   }
 
   @UseGuards(GoogleAuthGuard)

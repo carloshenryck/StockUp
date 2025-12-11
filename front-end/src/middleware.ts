@@ -1,3 +1,4 @@
+import { jwtVerify } from "jose";
 import { MiddlewareConfig, NextRequest, NextResponse } from "next/server";
 
 const publicRoutes = [
@@ -7,23 +8,41 @@ const publicRoutes = [
 
 const REDIRECT_WHEN_NOT_AUTHENTICATED_ROUTE = "/login";
 
-export function middleware(request: NextRequest) {
+async function verifyToken(token?: string, secret?: string): Promise<boolean> {
+  if (!token || !secret) {
+    return false;
+  }
+
+  try {
+    const secretKey = new TextEncoder().encode(secret);
+    await jwtVerify(token, secretKey);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const publicRoute = publicRoutes.find((route) => route.path === path);
-  const authToken = request.cookies.get("refreshToken");
+  const authToken = request.cookies.get("refreshToken")?.value;
+  const isTokenValid = await verifyToken(
+    authToken,
+    process.env.NEXT_PUBLIC_JWT_REFRESH_TOKEN_SECRET
+  );
 
-  if (!authToken && publicRoute) {
+  if (!isTokenValid && publicRoute) {
     return NextResponse.next();
   }
 
-  if (!authToken && !publicRoute) {
+  if (!isTokenValid && !publicRoute) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = REDIRECT_WHEN_NOT_AUTHENTICATED_ROUTE;
     return NextResponse.redirect(redirectUrl);
   }
 
   if (
-    authToken &&
+    isTokenValid &&
     publicRoute &&
     publicRoute.whenAuthenticated === "redirect"
   ) {

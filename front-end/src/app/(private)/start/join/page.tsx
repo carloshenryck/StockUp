@@ -91,11 +91,14 @@ export default function JoinCompanyPage() {
                             />
                           </div>
                         </FormControl>
-                        <FormDescription className="text-xs text-muted-foreground">
-                          O código de convite é fornecido pelo administrador da
-                          empresa
-                        </FormDescription>
-                        <FormMessage />
+                        {form.formState.errors.code ? (
+                          <FormMessage />
+                        ) : (
+                          <FormDescription className="text-sm text-muted-foreground">
+                            O código de convite é fornecido pelo administrador
+                            da empresa
+                          </FormDescription>
+                        )}
                       </FormItem>
                     )}
                   />

@@ -91,10 +91,13 @@ export default function CreateCompanyPage() {
                             />
                           </div>
                         </FormControl>
-                        <FormDescription className="text-xs text-muted-foreground">
-                          Crie uma empresa e convide colaboradores
-                        </FormDescription>
-                        <FormMessage />
+                        {form.formState.errors.name ? (
+                          <FormMessage />
+                        ) : (
+                          <FormDescription className="text-sm text-muted-foreground">
+                            Crie uma empresa e convide colaboradores
+                          </FormDescription>
+                        )}
                       </FormItem>
                     )}
                   />
